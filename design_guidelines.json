@@ -1,0 +1,126 @@
+{
+  "theme": "light",
+  "archetype": "1_organic_and_earthy",
+  "design_philosophy": "A Swiggy-like hyperlocal platform that doesn't feel like a sterile tech giant. We use 'Organic & Earthy' principles—warm bone-white backgrounds, deep terracotta accents, and soft stone greys. It blends high-end editorial food photography with crisp, functional SaaS elements for the kitchen and admin dashboards.",
+  "colors": {
+    "background": "#FDFBF7",
+    "surface": "#FFFFFF",
+    "surface_muted": "#F4F1EA",
+    "primary": "#D35400",
+    "primary_hover": "#A84300",
+    "text_primary": "#2C2724",
+    "text_secondary": "#7A7369",
+    "border": "#EAE5D9",
+    "success": "#556B2F",
+    "warning": "#E67E22",
+    "danger": "#C0392B"
+  },
+  "typography": {
+    "heading_font": "Cabinet Grotesk",
+    "body_font": "Manrope",
+    "scale": {
+      "h1": "text-4xl sm:text-5xl lg:text-6xl tracking-tight leading-none text-stone-900",
+      "h2": "text-3xl sm:text-4xl tracking-tight leading-tight text-stone-900",
+      "h3": "text-xl sm:text-2xl tracking-tight text-stone-900",
+      "h4": "text-lg sm:text-xl font-medium text-stone-800",
+      "body": "text-base leading-relaxed text-stone-600",
+      "small": "text-sm text-stone-500",
+      "overline": "text-xs font-bold uppercase tracking-[0.2em] text-orange-600"
+    }
+  },
+  "spacing_and_layout": {
+    "container_padding": "p-6 md:p-8 lg:p-12",
+    "section_gap": "gap-16 lg:gap-24",
+    "grid_marketing": "grid grid-cols-1 md:grid-cols-12 gap-8",
+    "grid_dashboard": "grid grid-cols-1 md:grid-cols-4 lg:grid-cols-6 gap-6",
+    "border_radius": "rounded-2xl"
+  },
+  "components": {
+    "buttons": {
+      "primary": "bg-orange-600 text-white hover:bg-orange-700 transition-colors shadow-sm font-medium px-6 py-3 rounded-full",
+      "secondary": "bg-stone-100 text-stone-800 hover:bg-stone-200 transition-colors px-6 py-3 rounded-full",
+      "outline": "border border-stone-300 text-stone-700 hover:border-orange-600 hover:text-orange-600 transition-colors rounded-full px-6 py-3"
+    },
+    "cards": {
+      "default": "bg-white rounded-2xl border border-stone-200/60 shadow-[0_8px_30px_rgb(0,0,0,0.04)] overflow-hidden",
+      "hover": "hover:shadow-[0_20px_40px_rgb(0,0,0,0.08)] hover:-translate-y-1 transition-all duration-300",
+      "dashboard_widget": "bg-white rounded-xl border border-stone-200 p-6"
+    },
+    "inputs": {
+      "default": "bg-white border border-stone-300 rounded-xl px-4 py-3 text-stone-800 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all"
+    },
+    "header": {
+      "glassmorphism": "sticky top-0 z-50 bg-white/80 backdrop-blur-xl border-b border-stone-200/50 supports-[backdrop-filter]:bg-white/60"
+    },
+    "badges": {
+      "default": "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-stone-100 text-stone-800",
+      "success": "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800",
+      "warning": "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800",
+      "status_preparing": "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800"
+    }
+  },
+  "motion": {
+    "hover_state": "transition-transform duration-300 ease-out",
+    "page_transition": "animate-in fade-in slide-in-from-bottom-4 duration-500",
+    "realtime_pulse": "animate-pulse ring-2 ring-orange-500 ring-offset-2 ring-offset-white"
+  },
+  "icons": {
+    "library": "lucide-react",
+    "style": "stroke-[1.5px] text-stone-600"
+  },
+  "media": {
+    "images": {
+      "hero_background": {
+        "url": "https://static.prod-images.emergentagent.com/jobs/4e35fcbb-3203-4527-8349-7602eda95188/images/0f249fff42fc986ffc47ec208d3905ef5fcca59f1bb8ce5d5ca38186c9144b14.png",
+        "description": "Wide-angle top-down photograph of a rustic wooden table filled with artisan homemade food bowls, warm golden hour lighting",
+        "category": "hero"
+      },
+      "delivery_agent": {
+        "url": "https://static.prod-images.emergentagent.com/jobs/4e35fcbb-3203-4527-8349-7602eda95188/images/5187b555c3184706252071020b1aa161984223490d3b814b496af0bc06ddbc0e.png",
+        "description": "Delivery agent on a bicycle or scooter in a warm sunny neighborhood",
+        "category": "illustration"
+      },
+      "kitchen_chef_1": {
+        "url": "https://images.unsplash.com/photo-1622021142947-da7dedc7c39a?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2Nzh8MHwxfHNlYXJjaHw0fHxjaGVmJTIwY29va2luZyUyMGluJTIwa2l0Y2hlbnxlbnwwfHx8fDE3NzQ2OTY1MTl8MA&ixlib=rb-4.1.0&q=85",
+        "description": "Man holding a white plate, preparing food",
+        "category": "kitchen_cover"
+      },
+      "kitchen_chef_2": {
+        "url": "https://images.pexels.com/photos/4590935/pexels-photo-4590935.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+        "description": "Tattooed chef in a white uniform preparing food",
+        "category": "kitchen_cover"
+      },
+      "food_bowl_1": {
+        "url": "https://images.unsplash.com/photo-1476005484258-bd38fa5bc155?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA2MjJ8MHwxfHNlYXJjaHwyfHxob21lbWFkZSUyMGhlYWx0aHklMjBmb29kJTIwYm93bHxlbnwwfHx8fDE3NzQ2OTY1MTh8MA&ixlib=rb-4.1.0&q=85",
+        "description": "pasta dish on white ceramic bowl",
+        "category": "menu_item"
+      },
+      "food_bowl_2": {
+        "url": "https://images.unsplash.com/photo-1764015939108-7963106fa73b?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA2MjJ8MHwxfHNlYXJjaHwzfHxob21lbWFkZSUyMGhlYWx0aHklMjBmb29kJTIwYm93bHxlbnwwfHx8fDE3NzQ2OTY1MTh8MA&ixlib=rb-4.1.0&q=85",
+        "description": "Bowl of creamy pumpkin soup",
+        "category": "menu_item"
+      },
+      "food_bowl_3": {
+        "url": "https://images.unsplash.com/photo-1774106425926-bdbab1356790?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA2MjJ8MHwxfHNlYXJjaHwxfHxob21lbWFkZSUyMGhlYWx0aHklMjBmb29kJTIwYm93bHxlbnwwfHx8fDE3NzQ2OTY1MTh8MA&ixlib=rb-4.1.0&q=85",
+        "description": "Hand squeezing lime over shredded carrot salad",
+        "category": "menu_item"
+      },
+      "food_bowl_4": {
+        "url": "https://images.unsplash.com/photo-1743409390921-1d1e673bc351?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA2MjJ8MHwxfHNlYXJjaHw0fHxob21lbWFkZSUyMGhlYWx0aHklMjBmb29kJTIwYm93bHxlbnwwfHx8fDE3NzQ2OTY1MTh8MA&ixlib=rb-4.1.0&q=85",
+        "description": "Fresh, delicious granola is served in a white bowl",
+        "category": "menu_item"
+      }
+    }
+  },
+  "instructions_to_main_agent": [
+    "Design files MUST be standard .js (.jsx) and not .tsx since the system uses JS.",
+    "Include `data-testid` on ALL interactive elements (buttons, links, inputs, badges).",
+    "Use pure HTML/Tailwind for the marketing/landing page with generous padding (p-12, gap-16) and avoid generic Shadcn wrappers to allow fluid bento grid layouts.",
+    "Use Shadcn UI for Dashboard features (Admin, Kitchen, Delivery) but override generic borders with `border-stone-200` and use `rounded-xl`.",
+    "Avoid standard tech gradients; rely on textures, flat colors, and high-quality image backgrounds.",
+    "Do NOT use pure #000000. Text should be #2C2724 (stone-900 equivalent). Background should be #FDFBF7 (stone-50 equivalent).",
+    "Apply CSS filter on OpenStreetMap/Leaflet components to match the warm theme: `filter: sepia(0.15) contrast(0.95) brightness(1.05) hue-rotate(-10deg);`.",
+    "For WebSockets real-time order tracking, add visual feedback such as a subtle `animate-pulse` on the active order state badge or progress bar.",
+    "Do not use 'Inter' font. Implement 'Cabinet Grotesk' for display/headings and 'Manrope' for body/forms."
+  ]
+}

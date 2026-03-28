@@ -1,0 +1,68 @@
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&display=swap');
+@import url('https://api.fontshare.com/v2/css?f[]=cabinet-grotesk@400,500,700,800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 40 50% 98%;
+    --foreground: 23 10% 16%;
+    --card: 0 0% 100%;
+    --card-foreground: 23 10% 16%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 23 10% 16%;
+    --primary: 24 100% 41%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 42 29% 94%;
+    --secondary-foreground: 23 10% 16%;
+    --muted: 42 29% 94%;
+    --muted-foreground: 35 7% 45%;
+    --accent: 42 29% 94%;
+    --accent-foreground: 23 10% 16%;
+    --destructive: 4 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 42 26% 88%;
+    --input: 42 26% 88%;
+    --ring: 24 100% 41%;
+    --chart-1: 24 100% 41%;
+    --chart-2: 82 35% 30%;
+    --chart-3: 30 80% 50%;
+    --chart-4: 42 74% 66%;
+    --chart-5: 4 72% 51%;
+    --radius: 0.75rem;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'Manrope', sans-serif;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Cabinet Grotesk', sans-serif;
+  }
+
+  [data-debug-wrapper="true"] {
+    display: contents !important;
+  }
+}
+
+.leaflet-container {
+  filter: sepia(0.15) contrast(0.95) brightness(1.05) hue-rotate(-10deg);
+  border-radius: 1rem;
+}
+
+@keyframes pulse-ring {
+  0% { box-shadow: 0 0 0 0 rgba(211, 84, 0, 0.4); }
+  70% { box-shadow: 0 0 0 10px rgba(211, 84, 0, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(211, 84, 0, 0); }
+}
+
+.status-active {
+  animation: pulse-ring 2s infinite;
+}
