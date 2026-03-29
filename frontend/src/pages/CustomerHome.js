@@ -2,9 +2,9 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import api from "@/lib/api";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Search, MapPin, Star, Clock, ChevronRight } from "lucide-react";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Search, MapPin, Star, Clock, ChevronRight, Loader2 } from "lucide-react";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
@@ -16,26 +16,50 @@ const markerIcon = new L.Icon({
   iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34], shadowSize: [41, 41],
 });
 
-const DEFAULT_ZONES = [
-  { name: "Downtown, NY", lat: 40.7580, lng: -73.9855 },
-  { name: "Midtown, NY", lat: 40.7614, lng: -73.9776 },
-  { name: "SoHo, NY", lat: 40.7234, lng: -73.9987 },
-  { name: "Brooklyn, NY", lat: 40.6782, lng: -73.9442 },
-];
+
 
 export default function CustomerHome() {
   const [kitchens, setKitchens] = useState([]);
   const [search, setSearch] = useState("");
-  const [location, setLocation] = useState(DEFAULT_ZONES[0]);
-  const [loading, setLoading] = useState(true);
+  const [location, setLocation] = useState(null);
+  const [locationError, setLocationError] = useState(false);
+  const [locationLoading, setLocationLoading] = useState(true);
+  const [manualAddress, setManualAddress] = useState("");
+  const [manualLoading, setManualLoading] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [showMap, setShowMap] = useState(false);
 
+  // Grab initial location
   useEffect(() => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          setLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+          setLocationLoading(false);
+        },
+        (err) => {
+          console.error("Geo error:", err);
+          setLocationError(true);
+          setLocationLoading(false);
+        },
+        { timeout: 10000 }
+      );
+    } else {
+      setLocationError(true);
+      setLocationLoading(false);
+    }
+  }, []);
+
+  // Fetch kitchens only when location is known
+  useEffect(() => {
+    if (!location) return;
     const fetchKitchens = async () => {
       setLoading(true);
       try {
         const params = { search: search || undefined };
-        if (location) { params.lat = location.lat; params.lng = location.lng; params.radius = 100; }
+        params.lat = location.lat; 
+        params.lng = location.lng; 
+        params.radius = 100;
         const { data } = await api.get("/kitchens", { params });
         setKitchens(data);
       } catch (e) { console.error(e); }
@@ -45,7 +69,53 @@ export default function CustomerHome() {
     return () => clearTimeout(debounce);
   }, [search, location]);
 
-  const mapCenter = location ? [location.lat, location.lng] : [40.7580, -73.9855];
+  const handleManualSearch = async (e) => {
+    e.preventDefault();
+    if (!manualAddress.trim()) return;
+    setManualLoading(true);
+    try {
+      // Free Nominatim API for geocoding
+      const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(manualAddress)}`);
+      const data = await res.json();
+      if (data && data.length > 0) {
+        setLocation({ lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) });
+        setLocationError(false);
+      } else {
+        toast.error("Could not find this location. Try a broader area.");
+      }
+    } catch (err) {
+      toast.error("Failed to search location.");
+    }
+    setManualLoading(false);
+  };
+
+  const mapCenter = location ? [location.lat, location.lng] : [22.5726, 88.3639]; // Default to Kolkata visually
+
+  if (locationLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh]">
+        <MapPin className="h-10 w-10 text-orange-600 animate-bounce mb-4" />
+        <h2 className="font-display text-xl text-stone-900">Detecting your exact location...</h2>
+        <p className="text-stone-500 mt-2">We need this to find the hottest kitchens near you.</p>
+      </div>
+    );
+  }
+
+  if (locationError && !location) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] max-w-md mx-auto px-4">
+        <MapPin className="h-12 w-12 text-stone-300 mb-4" />
+        <h2 className="font-display text-2xl text-stone-900 mb-2">Where are you?</h2>
+        <p className="text-stone-500 text-center mb-6">We couldn't detect your GPS automatically. Please enter your neighborhood or city below to find restaurants.</p>
+        <form onSubmit={handleManualSearch} className="w-full flex gap-2">
+          <Input value={manualAddress} onChange={(e) => setManualAddress(e.target.value)} placeholder="e.g. Salt Lake, Kolkata" className="rounded-xl flex-1" />
+          <Button type="submit" disabled={manualLoading} className="bg-orange-600 hover:bg-orange-700 text-white rounded-xl px-6">
+            {manualLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Search"}
+          </Button>
+        </form>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8" data-testid="customer-home">
@@ -53,18 +123,9 @@ export default function CustomerHome() {
       <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between mb-8">
         <div>
           <h1 className="font-display text-3xl sm:text-4xl tracking-tight text-stone-900">Nearby Kitchens</h1>
-          <div className="text-sm text-stone-500 mt-1 flex items-center gap-1">
-            <MapPin className="h-4 w-4 text-orange-600" />
-            <Select value={JSON.stringify(location)} onValueChange={(v) => setLocation(JSON.parse(v))}>
-              <SelectTrigger className="border-0 bg-transparent p-0 h-auto font-medium text-stone-700 hover:text-orange-600 w-auto shadow-none focus:ring-0">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {DEFAULT_ZONES.map((zone, i) => (
-                  <SelectItem key={i} value={JSON.stringify(zone)}>{zone.name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+          <div className="text-sm text-stone-500 mt-1 flex items-center gap-1 group cursor-pointer" onClick={() => { setLocation(null); setLocationError(true); setManualAddress(""); }}>
+            <MapPin className="h-4 w-4 text-orange-600 group-hover:animate-bounce" />
+            <span className="font-medium hover:text-orange-600 underline decoration-dashed underline-offset-4">Location Set: {location.lat.toFixed(3)}, {location.lng.toFixed(3)} (Change)</span>
           </div>
         </div>
         <div className="flex items-center gap-3 w-full sm:w-auto">
