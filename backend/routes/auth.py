@@ -56,7 +56,6 @@ async def register(req: RegisterReq, response: Response, request: Request):
     if reg_rec and reg_rec.get("count", 0) >= 10:
         last = reg_rec.get("last_attempt")
         if isinstance(last, str):
-            from datetime import datetime
             last = datetime.fromisoformat(last)
         if last and datetime.now(timezone.utc) - last < timedelta(hours=1):
             raise HTTPException(429, "Too many registrations from this IP. Try again later.")
