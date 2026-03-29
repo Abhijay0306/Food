@@ -50,7 +50,8 @@ async def register(req: RegisterReq, response: Response, request: Request):
     db = get_db()
 
     # Rate-limit: 10 registrations per IP per hour
-    ip = request.client.host if request.client else "unknown"
+    forwarded = request.headers.get("x-forwarded-for")
+    ip = forwarded.split(",")[0] if forwarded else (request.client.host if request.client else "unknown")
     reg_key = f"reg:{ip}"
     reg_rec = await db.login_attempts.find_one({"identifier": reg_key})
     if reg_rec and reg_rec.get("count", 0) >= 10:
@@ -95,7 +96,8 @@ async def register(req: RegisterReq, response: Response, request: Request):
 async def login(req: LoginReq, response: Response, request: Request):
     db = get_db()
     email = req.email.lower().strip()
-    ip = request.client.host if request.client else "unknown"
+    forwarded = request.headers.get("x-forwarded-for")
+    ip = forwarded.split(",")[0] if forwarded else (request.client.host if request.client else "unknown")
     identifier = f"{ip}:{email}"
 
     attempt = await db.login_attempts.find_one({"identifier": identifier})

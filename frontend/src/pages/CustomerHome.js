@@ -4,6 +4,7 @@ import api from "@/lib/api";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Search, MapPin, Star, Clock, ChevronRight } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
@@ -15,19 +16,19 @@ const markerIcon = new L.Icon({
   iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34], shadowSize: [41, 41],
 });
 
+const DEFAULT_ZONES = [
+  { name: "Downtown, NY", lat: 40.7580, lng: -73.9855 },
+  { name: "Midtown, NY", lat: 40.7614, lng: -73.9776 },
+  { name: "SoHo, NY", lat: 40.7234, lng: -73.9987 },
+  { name: "Brooklyn, NY", lat: 40.6782, lng: -73.9442 },
+];
+
 export default function CustomerHome() {
   const [kitchens, setKitchens] = useState([]);
   const [search, setSearch] = useState("");
-  const [location, setLocation] = useState(null);
+  const [location, setLocation] = useState(DEFAULT_ZONES[0]);
   const [loading, setLoading] = useState(true);
   const [showMap, setShowMap] = useState(false);
-
-  useEffect(() => {
-    navigator.geolocation?.getCurrentPosition(
-      pos => setLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
-      () => setLocation({ lat: 40.7580, lng: -73.9855 })
-    );
-  }, []);
 
   useEffect(() => {
     const fetchKitchens = async () => {
@@ -52,10 +53,19 @@ export default function CustomerHome() {
       <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between mb-8">
         <div>
           <h1 className="font-display text-3xl sm:text-4xl tracking-tight text-stone-900">Nearby Kitchens</h1>
-          <p className="text-sm text-stone-500 mt-1 flex items-center gap-1">
-            <MapPin className="h-3.5 w-3.5" />
-            {location ? `${location.lat.toFixed(3)}, ${location.lng.toFixed(3)}` : "Detecting location..."}
-          </p>
+          <div className="text-sm text-stone-500 mt-1 flex items-center gap-1">
+            <MapPin className="h-4 w-4 text-orange-600" />
+            <Select value={JSON.stringify(location)} onValueChange={(v) => setLocation(JSON.parse(v))}>
+              <SelectTrigger className="border-0 bg-transparent p-0 h-auto font-medium text-stone-700 hover:text-orange-600 w-auto shadow-none focus:ring-0">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {DEFAULT_ZONES.map((zone, i) => (
+                  <SelectItem key={i} value={JSON.stringify(zone)}>{zone.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
         <div className="flex items-center gap-3 w-full sm:w-auto">
           <div className="relative flex-1 sm:w-72">

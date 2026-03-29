@@ -132,11 +132,22 @@ async def list_orders(request: Request, status: Optional[str] = None):
 
 @router.get("/orders/{order_id}")
 async def get_order(order_id: str, request: Request):
-    await get_current_user(request)
+    user = await get_current_user(request)
     db = get_db()
     order = await db.orders.find_one({"_id": ObjectId(order_id)})
     if not order:
         raise HTTPException(404, "Order not found")
+        
+    # Security: Verify ownership
+    if user["role"] == "customer" and order.get("customer_id") != user["id"]:
+        raise HTTPException(403, "Not authorized to view this order")
+    if user["role"] == "kitchen_provider":
+        kitchen = await db.kitchens.find_one({"_id": ObjectId(order.get("kitchen_id"))})
+        if not kitchen or str(kitchen.get("owner_id")) != user["id"]:
+            raise HTTPException(403, "Not authorized to view this order")
+    if user["role"] == "delivery_agent" and order.get("delivery_agent_id") != user["id"]:
+        raise HTTPException(403, "Not authorized to view this order")
+        
     return doc_to_dict(order)
 
 

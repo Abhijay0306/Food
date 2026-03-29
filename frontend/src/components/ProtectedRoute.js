@@ -12,7 +12,7 @@ export default function ProtectedRoute({ children, roles }) {
     );
   }
 
-  if (!user) return <Navigate to="/login" replace />;
+  if (!user) return <Navigate to="/" replace />;
 
   if (roles && !roles.includes(user.role)) {
     // Redirect to appropriate dashboard

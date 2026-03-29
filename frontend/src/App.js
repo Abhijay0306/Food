@@ -31,9 +31,9 @@ function App() {
               <Route path="/login" element={<LoginPage />} />
               <Route path="/register" element={<RegisterPage />} />
               <Route path="/browse" element={<ProtectedRoute roles={["customer"]}><CustomerHome /></ProtectedRoute>} />
-              <Route path="/kitchen/:id" element={<KitchenMenu />} />
+              <Route path="/kitchen/:id" element={<ProtectedRoute roles={["customer"]}><KitchenMenu /></ProtectedRoute>} />
               <Route path="/cart" element={<ProtectedRoute roles={["customer"]}><CartPage /></ProtectedRoute>} />
-              <Route path="/payment-success" element={<PaymentSuccess />} />
+              <Route path="/payment-success" element={<ProtectedRoute roles={["customer"]}><PaymentSuccess /></ProtectedRoute>} />
               <Route path="/orders" element={<ProtectedRoute roles={["customer"]}><CustomerOrders /></ProtectedRoute>} />
               <Route path="/orders/:id" element={<ProtectedRoute><OrderTracking /></ProtectedRoute>} />
               <Route path="/kitchen-dashboard" element={<ProtectedRoute roles={["kitchen_provider"]}><KitchenDashboard /></ProtectedRoute>} />
