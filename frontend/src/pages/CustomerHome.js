@@ -28,6 +28,8 @@ export default function CustomerHome() {
   const [manualLoading, setManualLoading] = useState(false);
   const [loading, setLoading] = useState(false);
   const [showMap, setShowMap] = useState(false);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [suggestions, setSuggestions] = useState({ kitchens: [], cuisines: [] });
 
   // Grab initial location
   useEffect(() => {
@@ -59,9 +61,20 @@ export default function CustomerHome() {
         const params = { search: search || undefined };
         params.lat = location.lat; 
         params.lng = location.lng; 
-        params.radius = 100;
+        params.radius = 10; // Strict 10km radius limit
         const { data } = await api.get("/kitchens", { params });
         setKitchens(data);
+        
+        // Extract predictive suggestions
+        if (search) {
+          const s = search.toLowerCase();
+          const ks = data.filter(k => k.name.toLowerCase().includes(s)).slice(0, 3);
+          const allCuisines = Array.from(new Set(data.flatMap(k => k.cuisine_types || [])));
+          const cs = allCuisines.filter(c => c.toLowerCase().includes(s)).slice(0, 3);
+          setSuggestions({ kitchens: ks, cuisines: cs });
+        } else {
+          setSuggestions({ kitchens: [], cuisines: [] });
+        }
       } catch (e) { console.error(e); }
       setLoading(false);
     };
@@ -131,8 +144,43 @@ export default function CustomerHome() {
         <div className="flex items-center gap-3 w-full sm:w-auto">
           <div className="relative flex-1 sm:w-72">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-stone-400" />
-            <Input value={search} onChange={e => setSearch(e.target.value)}
-              placeholder="Search kitchens or cuisines..." className="pl-10 rounded-xl" data-testid="kitchen-search" />
+            <Input 
+              value={search} 
+              onChange={e => { setSearch(e.target.value); setShowSuggestions(true); }}
+              onFocus={() => setShowSuggestions(true)}
+              onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
+              placeholder="Search kitchens or cuisines..." 
+              className="pl-10 rounded-xl" 
+              data-testid="kitchen-search" 
+            />
+            {/* Predictive Search Dropdown */}
+            {showSuggestions && search && (suggestions.kitchens.length > 0 || suggestions.cuisines.length > 0) && (
+              <div className="absolute top-full mt-2 left-0 right-0 bg-white border border-stone-200 shadow-xl rounded-xl overflow-hidden z-50">
+                {suggestions.kitchens.length > 0 && (
+                  <div className="p-2 border-b border-stone-100">
+                    <p className="text-[10px] font-bold text-stone-400 uppercase tracking-wider px-2 mb-1">Kitchens</p>
+                    {suggestions.kitchens.map(k => (
+                      <button key={k.id} onClick={() => { setSearch(k.name); setShowSuggestions(false); }}
+                        className="w-full text-left px-3 py-2 text-sm text-stone-700 hover:bg-orange-50 hover:text-orange-700 rounded-lg transition-colors flex items-center justify-between">
+                        <span>{k.name}</span>
+                        {k.distance && <span className="text-[10px] text-stone-400">{k.distance.toFixed(1)}km</span>}
+                      </button>
+                    ))}
+                  </div>
+                )}
+                {suggestions.cuisines.length > 0 && (
+                  <div className="p-2">
+                    <p className="text-[10px] font-bold text-stone-400 uppercase tracking-wider px-2 mb-1">Cuisines</p>
+                    {suggestions.cuisines.map(c => (
+                      <button key={c} onClick={() => { setSearch(c); setShowSuggestions(false); }}
+                        className="w-full text-left px-3 py-2 text-sm text-stone-700 hover:bg-orange-50 hover:text-orange-700 rounded-lg transition-colors">
+                        {c}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
           <button onClick={() => setShowMap(!showMap)}
             className={`px-4 py-2 rounded-xl text-sm font-medium transition-colors ${showMap ? "bg-orange-600 text-white" : "bg-stone-100 text-stone-700 hover:bg-stone-200"}`}
@@ -154,14 +202,10 @@ export default function CustomerHome() {
           <MapContainer center={mapCenter} zoom={13} style={{ height: "100%", width: "100%" }} scrollWheelZoom={false}>
             <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>' />
-            {(search ? kitchens : kitchens.filter(k => k.distance <= 10)).filter(k => k.lat && k.lng).map(k => (
-              <Marker key={k.id} position={[k.lat, k.lng]} icon={markerIcon} opacity={k.distance > 10 ? 0.5 : 1}>
+            {kitchens.filter(k => k.lat && k.lng).map(k => (
+              <Marker key={k.id} position={[k.lat, k.lng]} icon={markerIcon}>
                 <Popup>
-                  {k.distance > 10 ? (
-                    <span className="font-medium text-stone-500">{k.name} (Too Far)</span>
-                  ) : (
-                    <Link to={`/kitchen/${k.id}`} className="font-medium text-orange-600 hover:underline">{k.name}</Link>
-                  )}
+                  <Link to={`/kitchen/${k.id}`} className="font-medium text-orange-600 hover:underline">{k.name}</Link>
                   <p className="text-xs text-stone-500 mt-1">{k.cuisine_types?.join(", ")}</p>
                 </Popup>
               </Marker>
@@ -183,62 +227,52 @@ export default function CustomerHome() {
             </div>
           ))}
         </div>
-      ) : (search ? kitchens : kitchens.filter(k => k.distance <= 10)).length === 0 ? (
+      ) : kitchens.length === 0 ? (
         <div className="text-center py-20">
           <p className="text-stone-400 text-lg">No kitchens found nearby</p>
           <p className="text-stone-400 text-sm mt-2">Try expanding your search or check back later</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" data-testid="kitchen-grid">
-          {(search ? kitchens : kitchens.filter(k => k.distance <= 10)).map(k => {
-            const isTooFar = k.distance > 10;
-            return (
-              <Link to={isTooFar ? "#" : `/kitchen/${k.id}`} key={k.id}
-                onClick={(e) => { if (isTooFar) e.preventDefault(); }}
-                className={`bg-white rounded-2xl border border-stone-200/60 shadow-[0_8px_30px_rgb(0,0,0,0.04)] overflow-hidden group ${isTooFar ? 'opacity-60 grayscale cursor-not-allowed' : 'card-hover'}`}
-                data-testid={`kitchen-card-${k.id}`}>
-                <div className="relative h-48 overflow-hidden bg-stone-100">
-                  <img src={k.image_url || "https://images.unsplash.com/photo-1476005484258-bd38fa5bc155?w=600"}
-                    alt={k.name} className={`w-full h-full object-cover transition-transform duration-500 ${!isTooFar && 'group-hover:scale-105'}`} />
-                  <div className="absolute top-3 left-3 flex gap-2">
-                    {isTooFar ? (
-                      <Badge className="bg-stone-800 hover:bg-stone-800 text-stone-100 border-0 text-[10px] shadow-md uppercase tracking-wider py-0.5">
-                        Too Far
-                      </Badge>
-                    ) : (
-                      <Badge className={`${k.is_open ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"} border-0 text-[10px] uppercase font-bold tracking-wider py-0.5 shadow-sm`}
-                        data-testid={`kitchen-status-${k.id}`}>
-                        {k.is_open ? "Open" : "Closed"}
-                      </Badge>
-                    )}
-                  </div>
-                  {k.distance != null && (
-                    <div className="absolute bottom-3 right-3 bg-white/95 backdrop-blur-sm shadow-sm rounded-full px-3 py-1 text-xs font-bold text-stone-700">
-                      {k.distance < 1 ? `${(k.distance * 1000).toFixed(0)}m away` : `${k.distance.toFixed(1)}km away`}
-                    </div>
-                  )}
+          {kitchens.map(k => (
+            <Link to={`/kitchen/${k.id}`} key={k.id}
+              className="bg-white rounded-2xl border border-stone-200/60 shadow-[0_8px_30px_rgb(0,0,0,0.04)] overflow-hidden card-hover group"
+              data-testid={`kitchen-card-${k.id}`}>
+              <div className="relative h-48 overflow-hidden bg-stone-100">
+                <img src={k.image_url || "https://images.unsplash.com/photo-1476005484258-bd38fa5bc155?w=600"}
+                  alt={k.name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                <div className="absolute top-3 left-3 flex gap-2">
+                  <Badge className={`${k.is_open ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"} border-0 text-[10px] uppercase font-bold tracking-wider py-0.5 shadow-sm`}
+                    data-testid={`kitchen-status-${k.id}`}>
+                    {k.is_open ? "Open" : "Closed"}
+                  </Badge>
                 </div>
-                <div className="p-5">
-                  <div className="flex items-start justify-between mb-2 gap-2">
-                    <h3 className={`font-display text-lg font-medium transition-colors line-clamp-1 ${isTooFar ? "text-stone-500" : "text-stone-900 group-hover:text-orange-600"}`}>{k.name}</h3>
-                    <div className="flex items-center gap-1 text-sm shrink-0 bg-stone-50 px-2 py-0.5 rounded-full">
-                      <Star className={`h-3 w-3 ${isTooFar ? "text-stone-400 fill-stone-400" : "text-orange-400 fill-orange-400"}`} />
-                      <span className="font-bold text-stone-700 text-xs">{k.rating?.toFixed(1)}</span>
-                    </div>
+                {k.distance != null && (
+                  <div className="absolute bottom-3 right-3 bg-white/95 backdrop-blur-sm shadow-sm rounded-full px-3 py-1 text-xs font-bold text-stone-700">
+                    {k.distance < 1 ? `${(k.distance * 1000).toFixed(0)}m away` : `${k.distance.toFixed(1)}km away`}
                   </div>
-                  <p className="text-sm text-stone-500 line-clamp-2 mb-4 leading-relaxed">{k.description}</p>
-                  <div className="flex items-center justify-between border-t border-stone-100 pt-4 mt-auto">
-                    <div className="flex flex-wrap gap-1.5">
-                      {k.cuisine_types?.slice(0, 2).map((c, i) => (
-                        <span key={i} className="text-[10px] uppercase tracking-wider font-bold text-stone-500 bg-stone-100 rounded-md px-2 py-1">{c}</span>
-                      ))}
-                    </div>
-                    {!isTooFar && <ChevronRight className="h-4 w-4 text-stone-300 group-hover:text-orange-500 transition-colors" />}
+                )}
+              </div>
+              <div className="p-5">
+                <div className="flex items-start justify-between mb-2 gap-2">
+                  <h3 className="font-display text-lg font-medium text-stone-900 group-hover:text-orange-600 transition-colors line-clamp-1">{k.name}</h3>
+                  <div className="flex items-center gap-1 text-sm shrink-0 bg-stone-50 px-2 py-0.5 rounded-full">
+                    <Star className="h-3 w-3 text-orange-400 fill-orange-400" />
+                    <span className="font-bold text-stone-700 text-xs">{k.rating?.toFixed(1)}</span>
                   </div>
                 </div>
-              </Link>
-            )
-          })}
+                <p className="text-sm text-stone-500 line-clamp-2 mb-4 leading-relaxed">{k.description}</p>
+                <div className="flex items-center justify-between border-t border-stone-100 pt-4 mt-auto">
+                  <div className="flex flex-wrap gap-1.5">
+                    {k.cuisine_types?.slice(0, 2).map((c, i) => (
+                      <span key={i} className="text-[10px] uppercase tracking-wider font-bold text-stone-500 bg-stone-100 rounded-md px-2 py-1">{c}</span>
+                    ))}
+                  </div>
+                  <ChevronRight className="h-4 w-4 text-stone-300 group-hover:text-orange-500 transition-colors" />
+                </div>
+              </div>
+            </Link>
+          ))}
         </div>
       )}
     </div>
