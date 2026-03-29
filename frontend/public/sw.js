@@ -31,6 +31,9 @@ self.addEventListener("fetch", (event) => {
 
   const url = new URL(event.request.url);
 
+  // Ignore chrome extension scripts
+  if (url.protocol === 'chrome-extension:') return;
+
   // API calls: Network first, don't cache
   if (url.pathname.startsWith("/api/")) {
     event.respondWith(fetch(event.request));
