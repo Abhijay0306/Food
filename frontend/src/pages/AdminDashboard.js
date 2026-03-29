@@ -34,7 +34,11 @@ export default function AdminDashboard() {
     setLoading(false);
   }, []);
 
-  useEffect(() => { loadData(); }, [loadData]);
+  useEffect(() => { 
+    loadData(); 
+    const interval = setInterval(loadData, 10000); // Auto-refresh every 10s
+    return () => clearInterval(interval);
+  }, [loadData]);
 
   const handleAssign = async (orderId, agentId) => {
     try {

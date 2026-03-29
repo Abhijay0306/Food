@@ -56,7 +56,11 @@ export default function KitchenDashboard() {
     setLoading(false);
   }, []);
 
-  useEffect(() => { loadData(); }, [loadData]);
+  useEffect(() => { 
+    loadData(); 
+    const interval = setInterval(loadData, 10000); // Auto-refresh every 10s
+    return () => clearInterval(interval);
+  }, [loadData]);
 
   if (loading) return <div className="flex justify-center py-20"><Loader2 className="h-8 w-8 animate-spin text-orange-600" /></div>;
   if (noKitchen) return <CreateKitchenForm onCreated={loadData} />;

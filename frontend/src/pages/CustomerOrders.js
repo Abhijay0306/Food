@@ -45,6 +45,8 @@ export default function CustomerOrders() {
       setLoading(false);
     };
     load();
+    const interval = setInterval(load, 10000); // Auto-refresh every 10s
+    return () => clearInterval(interval);
   }, [filter]);
 
   const handleSubmitReview = async () => {
