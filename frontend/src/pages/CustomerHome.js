@@ -141,16 +141,27 @@ export default function CustomerHome() {
         </div>
       </div>
 
+      {loading && !search && (
+        <div className="flex items-center gap-2 mb-4 text-stone-500 text-sm">
+          <Loader2 className="h-4 w-4 animate-spin text-orange-600" />
+          <span>Looking for nearby restaurants...</span>
+        </div>
+      )}
+
       {/* Map */}
       {showMap && location && (
         <div className="mb-8 rounded-2xl overflow-hidden border border-stone-200 h-[350px]" data-testid="kitchen-map">
           <MapContainer center={mapCenter} zoom={13} style={{ height: "100%", width: "100%" }} scrollWheelZoom={false}>
             <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>' />
-            {kitchens.filter(k => k.lat && k.lng).map(k => (
-              <Marker key={k.id} position={[k.lat, k.lng]} icon={markerIcon}>
+            {(search ? kitchens : kitchens.filter(k => k.distance <= 10)).filter(k => k.lat && k.lng).map(k => (
+              <Marker key={k.id} position={[k.lat, k.lng]} icon={markerIcon} opacity={k.distance > 10 ? 0.5 : 1}>
                 <Popup>
-                  <Link to={`/kitchen/${k.id}`} className="font-medium text-orange-600 hover:underline">{k.name}</Link>
+                  {k.distance > 10 ? (
+                    <span className="font-medium text-stone-500">{k.name} (Too Far)</span>
+                  ) : (
+                    <Link to={`/kitchen/${k.id}`} className="font-medium text-orange-600 hover:underline">{k.name}</Link>
+                  )}
                   <p className="text-xs text-stone-500 mt-1">{k.cuisine_types?.join(", ")}</p>
                 </Popup>
               </Marker>
@@ -172,52 +183,62 @@ export default function CustomerHome() {
             </div>
           ))}
         </div>
-      ) : kitchens.length === 0 ? (
+      ) : (search ? kitchens : kitchens.filter(k => k.distance <= 10)).length === 0 ? (
         <div className="text-center py-20">
           <p className="text-stone-400 text-lg">No kitchens found nearby</p>
           <p className="text-stone-400 text-sm mt-2">Try expanding your search or check back later</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" data-testid="kitchen-grid">
-          {kitchens.map(k => (
-            <Link to={`/kitchen/${k.id}`} key={k.id}
-              className="bg-white rounded-2xl border border-stone-200/60 shadow-[0_8px_30px_rgb(0,0,0,0.04)] overflow-hidden card-hover group"
-              data-testid={`kitchen-card-${k.id}`}>
-              <div className="relative h-48 overflow-hidden">
-                <img src={k.image_url || "https://images.unsplash.com/photo-1476005484258-bd38fa5bc155?w=600"}
-                  alt={k.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                <div className="absolute top-3 left-3 flex gap-2">
-                  <Badge className={`${k.is_open ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"} border-0 text-xs`}
-                    data-testid={`kitchen-status-${k.id}`}>
-                    {k.is_open ? "Open" : "Closed"}
-                  </Badge>
-                </div>
-                {k.distance != null && (
-                  <div className="absolute bottom-3 right-3 bg-white/90 backdrop-blur-sm rounded-full px-3 py-1 text-xs font-medium text-stone-700">
-                    {k.distance < 1 ? `${(k.distance * 1000).toFixed(0)}m` : `${k.distance.toFixed(1)}km`}
+          {(search ? kitchens : kitchens.filter(k => k.distance <= 10)).map(k => {
+            const isTooFar = k.distance > 10;
+            return (
+              <Link to={isTooFar ? "#" : `/kitchen/${k.id}`} key={k.id}
+                onClick={(e) => { if (isTooFar) e.preventDefault(); }}
+                className={`bg-white rounded-2xl border border-stone-200/60 shadow-[0_8px_30px_rgb(0,0,0,0.04)] overflow-hidden group ${isTooFar ? 'opacity-60 grayscale cursor-not-allowed' : 'card-hover'}`}
+                data-testid={`kitchen-card-${k.id}`}>
+                <div className="relative h-48 overflow-hidden bg-stone-100">
+                  <img src={k.image_url || "https://images.unsplash.com/photo-1476005484258-bd38fa5bc155?w=600"}
+                    alt={k.name} className={`w-full h-full object-cover transition-transform duration-500 ${!isTooFar && 'group-hover:scale-105'}`} />
+                  <div className="absolute top-3 left-3 flex gap-2">
+                    {isTooFar ? (
+                      <Badge className="bg-stone-800 hover:bg-stone-800 text-stone-100 border-0 text-[10px] shadow-md uppercase tracking-wider py-0.5">
+                        Too Far
+                      </Badge>
+                    ) : (
+                      <Badge className={`${k.is_open ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"} border-0 text-[10px] uppercase font-bold tracking-wider py-0.5 shadow-sm`}
+                        data-testid={`kitchen-status-${k.id}`}>
+                        {k.is_open ? "Open" : "Closed"}
+                      </Badge>
+                    )}
                   </div>
-                )}
-              </div>
-              <div className="p-5">
-                <div className="flex items-start justify-between mb-2">
-                  <h3 className="font-display text-lg font-medium text-stone-900 group-hover:text-orange-600 transition-colors">{k.name}</h3>
-                  <div className="flex items-center gap-1 text-sm">
-                    <Star className="h-3.5 w-3.5 text-orange-400 fill-orange-400" />
-                    <span className="font-medium text-stone-800">{k.rating?.toFixed(1)}</span>
+                  {k.distance != null && (
+                    <div className="absolute bottom-3 right-3 bg-white/95 backdrop-blur-sm shadow-sm rounded-full px-3 py-1 text-xs font-bold text-stone-700">
+                      {k.distance < 1 ? `${(k.distance * 1000).toFixed(0)}m away` : `${k.distance.toFixed(1)}km away`}
+                    </div>
+                  )}
+                </div>
+                <div className="p-5">
+                  <div className="flex items-start justify-between mb-2 gap-2">
+                    <h3 className={`font-display text-lg font-medium transition-colors line-clamp-1 ${isTooFar ? "text-stone-500" : "text-stone-900 group-hover:text-orange-600"}`}>{k.name}</h3>
+                    <div className="flex items-center gap-1 text-sm shrink-0 bg-stone-50 px-2 py-0.5 rounded-full">
+                      <Star className={`h-3 w-3 ${isTooFar ? "text-stone-400 fill-stone-400" : "text-orange-400 fill-orange-400"}`} />
+                      <span className="font-bold text-stone-700 text-xs">{k.rating?.toFixed(1)}</span>
+                    </div>
+                  </div>
+                  <p className="text-sm text-stone-500 line-clamp-2 mb-4 leading-relaxed">{k.description}</p>
+                  <div className="flex items-center justify-between border-t border-stone-100 pt-4 mt-auto">
+                    <div className="flex flex-wrap gap-1.5">
+                      {k.cuisine_types?.slice(0, 2).map((c, i) => (
+                        <span key={i} className="text-[10px] uppercase tracking-wider font-bold text-stone-500 bg-stone-100 rounded-md px-2 py-1">{c}</span>
+                      ))}
+                    </div>
+                    {!isTooFar && <ChevronRight className="h-4 w-4 text-stone-300 group-hover:text-orange-500 transition-colors" />}
                   </div>
                 </div>
-                <p className="text-sm text-stone-500 line-clamp-2 mb-3">{k.description}</p>
-                <div className="flex items-center justify-between">
-                  <div className="flex flex-wrap gap-1.5">
-                    {k.cuisine_types?.slice(0, 3).map((c, i) => (
-                      <span key={i} className="text-[11px] font-medium text-stone-500 bg-stone-100 rounded-full px-2.5 py-0.5">{c}</span>
-                    ))}
-                  </div>
-                  <ChevronRight className="h-4 w-4 text-stone-300 group-hover:text-orange-400 transition-colors" />
-                </div>
-              </div>
-            </Link>
-          ))}
+              </Link>
+            )
+          })}
         </div>
       )}
     </div>
