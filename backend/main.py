@@ -36,6 +36,16 @@ logger = logging.getLogger(__name__)
 
 app = FastAPI(title="HyperEats API", version="1.0.0")
 
+import traceback
+from fastapi.responses import JSONResponse
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    logger.error(f"Global exception: {traceback.format_exc()}")
+    return JSONResponse(
+        status_code=500,
+        content={"detail": "Internal Server Error", "exception": str(exc), "trace": traceback.format_exc()}
+    )
+
 # ── CORS ──────────────────────────────────────────────────────────────────────
 cors_origins_raw = os.environ.get("CORS_ORIGINS", "")
 if cors_origins_raw and cors_origins_raw != "*":
