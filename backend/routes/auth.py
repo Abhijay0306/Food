@@ -87,8 +87,8 @@ async def register(req: RegisterReq, response: Response, request: Request):
 
     access = create_access_token(uid, email)
     refresh = create_refresh_token(uid)
-    response.set_cookie("access_token", access, httponly=True, secure=False, samesite="lax", max_age=7200, path="/")
-    response.set_cookie("refresh_token", refresh, httponly=True, secure=False, samesite="lax", max_age=604800, path="/")
+    response.set_cookie("access_token", access, httponly=True, secure=True, samesite="none", max_age=7200, path="/")
+    response.set_cookie("refresh_token", refresh, httponly=True, secure=True, samesite="none", max_age=604800, path="/")
     return {"id": uid, "email": email, "name": req.name, "role": req.role, "token": access}
 
 
@@ -120,8 +120,8 @@ async def login(req: LoginReq, response: Response, request: Request):
     uid = str(user["_id"])
     access = create_access_token(uid, email)
     refresh = create_refresh_token(uid)
-    response.set_cookie("access_token", access, httponly=True, secure=False, samesite="lax", max_age=7200, path="/")
-    response.set_cookie("refresh_token", refresh, httponly=True, secure=False, samesite="lax", max_age=604800, path="/")
+    response.set_cookie("access_token", access, httponly=True, secure=True, samesite="none", max_age=7200, path="/")
+    response.set_cookie("refresh_token", refresh, httponly=True, secure=True, samesite="none", max_age=604800, path="/")
     return {"id": uid, "email": email, "name": user["name"], "role": user["role"], "token": access}
 
 
@@ -151,7 +151,7 @@ async def refresh(request: Request, response: Response):
         if not user:
             raise HTTPException(401, "User not found")
         access = create_access_token(str(user["_id"]), user["email"])
-        response.set_cookie("access_token", access, httponly=True, secure=False, samesite="lax", max_age=7200, path="/")
+        response.set_cookie("access_token", access, httponly=True, secure=True, samesite="none", max_age=7200, path="/")
         return {"message": "Token refreshed"}
     except jwt.InvalidTokenError:
         raise HTTPException(401, "Invalid token")
