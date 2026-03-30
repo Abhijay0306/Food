@@ -46,6 +46,10 @@ async def global_exception_handler(request: Request, exc: Exception):
         content={"detail": "Internal Server Error", "exception": str(exc), "trace": traceback.format_exc()}
     )
 
+@app.get("/api/health")
+async def health_check():
+    return {"status": "ok", "message": "Stayin' alive"}
+
 # ── CORS ──────────────────────────────────────────────────────────────────────
 cors_origins_raw = os.environ.get("CORS_ORIGINS", "")
 if cors_origins_raw and cors_origins_raw != "*":
@@ -178,8 +182,23 @@ SEED_DATA = [
 ]
 
 
+import asyncio
+import httpx
+
+async def keep_alive():
+    url = "https://hypereats-api.onrender.com/api/health"
+    while True:
+        await asyncio.sleep(600)  # Ping every 10 minutes
+        try:
+            async with httpx.AsyncClient() as client:
+                await client.get(url, timeout=10.0)
+            logger.info("Self-ping successful to prevent Render sleep.")
+        except Exception as e:
+            logger.error(f"Keep-alive ping failed: {e}")
+
 @app.on_event("startup")
 async def startup():
+    asyncio.create_task(keep_alive())
     from utils import hash_password, verify_password
     from datetime import datetime, timezone
 
