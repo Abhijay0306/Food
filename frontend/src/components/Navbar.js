@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useState } from "react";
+import InstallPwaButton from "./InstallPwaButton";
 
 export default function Navbar() {
   const { user, logout } = useAuth();
@@ -66,6 +67,8 @@ export default function Navbar() {
           </div>
 
           <div className="flex items-center gap-3">
+            <InstallPwaButton />
+            
             {user && user.role === "customer" && (
               <Link to="/cart" className="relative p-2 rounded-full hover:bg-stone-100 transition-colors" data-testid="nav-cart">
                 <ShoppingCart className="h-5 w-5 text-stone-600" />
