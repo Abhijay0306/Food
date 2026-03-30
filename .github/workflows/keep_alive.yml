@@ -1,0 +1,17 @@
+name: Keep Render Server Alive
+
+on:
+  schedule:
+    # Runs every 14 minutes to prevent Render's 15-minute inactivity spin-down
+    - cron: '*/14 * * * *'
+  # Allows triggering this workflow manually from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  ping-server:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping HyperEats Backend
+        # We ping the /api/kitchens endpoint as it's an unauthenticated GET request
+        run: |
+          curl -sSf https://hypereats-api.onrender.com/api/kitchens > /dev/null || echo "Ping failed, but workflow continues."
